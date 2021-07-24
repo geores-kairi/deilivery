@@ -122,10 +122,12 @@ Lv.2 Intensive Coursework - Kimg Sung-Hwan
 # 분석/설계
 
 ## Event Storming 결과
+
 * MSAEz 로 모델링한 이벤트스토밍 결과: http://www.msaez.io/#/storming/o3vDx7FSYPdgNQwy5allxyoOnYg2/1f14577a07cd2d737e2630e7659d476a
 
 
 ### 이벤트 도출
+
 ![1](https://user-images.githubusercontent.com/60598148/126855260-fae899b9-296a-431a-9a3a-74ef8e779ab3.jpg)
 
 
@@ -137,69 +139,72 @@ Lv.2 Intensive Coursework - Kimg Sung-Hwan
         - '마이페이지에서 조회됨'은 발생한 사실, 결과라고 보기 어려우므로 이벤트에서 제외
 
 ### 액터, 커맨드 부착하여 읽기 좋게
+
 ![3](https://user-images.githubusercontent.com/60598148/126855442-db728ae0-55d2-4b4d-b3ae-2a035c85e532.jpg)
 
 ### 어그리게잇으로 묶기
+
 ![4](https://user-images.githubusercontent.com/60598148/126855529-4967f5dc-f2bf-46dd-92ee-7831bf2e1d9e.jpg)
     
     - 상점의 주문관리, 결제의 결제이력, 정산과 연결된 command 와 event 들에 의하여 트랜잭션이 유지되어야 하는 단위로 묶어줌
     
 ### 바운디드 컨텍스트로 묶기
 
-<img src="https://user-images.githubusercontent.com/85722733/124451753-aebccc00-ddc0-11eb-91ca-6b6355106898.png"  width="80%" height="80%">
+![5](https://user-images.githubusercontent.com/60598148/126855686-400b0e7a-0ef7-4950-a850-4185dd8aec39.jpg)
 
     - 도메인 서열 분리 
-        - Core Domain:  order, ordermanagement : 없어서는 안될 핵심 서비스이며, 연견 Up-time SLA 수준을 99.999% 목표, 배포주기는 order의 경우 1주일 1회 미만, ordermanagement의 경우 1개월 1회 미만
-        - Supporting Domain:  delivery : 경쟁력을 내기위한 서비스이며, SLA 수준은 연간 60% 이상 uptime 목표, 배포주기는 각 팀의 자율이나 표준 스프린트 주기가 1주일 이므로 1주일 1회 이상을 기준으로 함
-        - General Domain:   pay : 결제서비스로 3rd Party 외부 서비스를 사용하는 것이 경쟁력이 높음 (핑크색으로 이후 전환할 예정)
+        - Core Domain:  ordermanagement : 없어서는 안될 핵심 서비스이며, 연견 Up-time SLA 수준을 99.999% 목표, 배포주기는 order의 경우 1주일 1회 미만, ordermanagement의 경우 1개월 1회 미만
+        - Supporting Domain:  settlement : 점주 관리를 위한 서비스이며, SLA 수준은 연간 60% 이상 uptime 목표, 배포주기는 각 팀의 자율이나 표준 스프린트 주기가 1주일 이므로 1주일 1회 이상을 기준으로 함
+        - General Domain:   partner : 결제서비스로 3rd Party 외부 서비스를 사용하는 것이 경쟁력이 높음
 
-### 폴리시 부착 (괄호는 수행주체, 폴리시 부착을 둘째단계에서 해놔도 상관 없음. 전체 연계가 초기에 드러남)
 
-<img src="https://user-images.githubusercontent.com/85722733/124451790-b7150700-ddc0-11eb-9e95-4cac51bb165e.png"  width="80%" height="80%">
+### 폴리시의 부착과 컨텍스트 매핑 (점선은 Pub/Sub, 실선은 Req/Resp)
 
-### 폴리시의 이동과 컨텍스트 매핑 (점선은 Pub/Sub, 실선은 Req/Resp)
+![6](https://user-images.githubusercontent.com/60598148/126855898-56383656-e0ad-4e2d-941b-eb616e83dbe3.jpg)
 
-<img src="https://user-images.githubusercontent.com/85722733/124451818-bf6d4200-ddc0-11eb-816d-8e55df0fdabc.png"  width="80%" height="80%">
 
-### 완성된 모형
+### 완성된 모형(팀과제)
 
 ![MSAEz](https://user-images.githubusercontent.com/85722733/124453306-36efa100-ddc2-11eb-9620-d07221ed7e78.png)
+
+### 완성된 모형(개인과제 추가 모형)
+
+![완성모델2](https://user-images.githubusercontent.com/60598148/126855923-0edca4e2-b665-466a-804b-4341ff2eb68d.jpg)
+
 
     - View Model 추가
 
 ### 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
 
-<img src="https://user-images.githubusercontent.com/85722733/124564387-f8b6b800-de7b-11eb-8311-b9928bc13374.png"  width="80%" height="80%">
+![7](https://user-images.githubusercontent.com/60598148/126856031-ebd6aab4-b162-45f9-a5c5-ed24a9c8164b.jpg)
 
-    - 고객이 도서를 선택하여 주문한다 (ok)
-    - 고객이 결제한다 (ok)
-    - 결제가 완료되면 주문 내역이 도서상점에 전달된다 (ok)
-    - 상점주인이 주문을 접수하고 도서를 포장한다 (ok)
-    - 도서 포장이 완료되면 상점소속배달기사가 배송을 시작한다 (ok)
-    
 
-<img src="https://user-images.githubusercontent.com/85722733/124564426-0409e380-de7c-11eb-8689-523340b2adf2.png"  width="80%" height="80%">
- 
-    - 고객이 주문을 취소할 수 있다 (ok)
-    - 주문이 취소되면 배송 및 결제가 취소된다 (ok)
-    - 고객이 주문상태를 중간중간 조회한다 (ok)
-    - 주문/배송상태가 바뀔 때마다 고객이 마이페이지에서 상태를 확인할 수 있다 (ok)
-
+    - 상점주인이 주문을 접수한다 (ok)
+    - 주문접수 정보가 정산시스템에 입력된다 (ok)
+    - 배달원이 배달완료 정보를 입력한다 (ok)
+    - 배달완료정보가 정산시스템에 반영된다 (ok)
+    - 동시에 점주에게 정산내역이 지불된다 (ok)
+    - 지불된 후 정산시스템에 정산내역이 반영된다 (ok)
+  
 
 ### 비기능 요구사항에 대한 검증
-<img src="https://user-images.githubusercontent.com/85722733/124566367-f190a980-de7d-11eb-9a9d-ba86558a095f.png"  width="80%" height="80%">
+
+![8](https://user-images.githubusercontent.com/60598148/126856304-ecb97e2e-6c2c-4956-94c5-e81e01cdc2db.jpg)
+
+
 
     - 마이크로서비스를 넘나드는 시나리오에 대한 트랜잭션 처리
-        - 고객 주문시 결제처리:  결제가 완료되지 않은 주문은 절대 받지 않는다는 경영자의 오랜 신념(?)에 따라, ACID 트랜잭션 적용. 주문완료시 결제처리에 대해서는 Request-Response 방식 처리
-        - 결제 완료시 점주연결 및 배송처리:  payment 에서 ordermanagement 마이크로서비스로 주문요청이 전달되는 과정에 있어서 ordermanagement 마이크로서비스가 별도의 배포주기를 가지기 때문에 Eventual Consistency 방식으로 트랜잭션 처리함.
+        - 배달 완료 시 정산처리:  배달완료가 되지 않은 건은 절대 정산하지 않는다는 경영자의 오랜 신념(?)에 따라, ACID 트랜잭션 적용. 주문완료시 결제처리에 대해서는 Request-Response 방식 처리
+        - 배달 및 정산 상태에 대한 정보를 상점주인이 조회가능해야 하므로 각 이벤트에 대한 정보를 수신하여 CQRS로 조회 가능
         - 나머지 모든 inter-microservice 트랜잭션: 데이터 일관성의 시점이 크리티컬하지 않은 모든 경우가 대부분이라 판단, Eventual Consistency 를 기본으로 채택함.
 
 
 
 
-## 헥사고날 아키텍처 다이어그램 도출
+## 헥사고날 아키텍처 다이어그램 도출(추가 모델)
     
-![헥사고날아키텍쳐](https://user-images.githubusercontent.com/85722733/125288478-29ee2700-e359-11eb-93f0-acdc66789152.png)
+![9](https://user-images.githubusercontent.com/60598148/126856400-30f9b7f6-5b0c-4415-9fc1-0dfed77bd859.jpg)
+
 
     - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
     - 호출관계에서 Pub/Sub 과 Req/Resp 를 구분함
