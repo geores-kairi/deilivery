@@ -448,8 +448,8 @@ fallback 기능 없이 payment 서비스를 중지하고 주문 생성 시에는
 위와 같이 fallback 기능 활성화 후에는 payment서비스가 동작하지 않더라도 주문 생성 시에 오류가 발생하지 않는다
 
 ```
-![11](https://user-images.githubusercontent.com/60598148/126857653-6017ab5e-6e39-4f93-8b93-68b3042f40cd.jpg)
-![12](https://user-images.githubusercontent.com/60598148/126857655-6392ffc7-ebed-4983-bde2-229e04972692.jpg)
+![13](https://user-images.githubusercontent.com/60598148/126857700-26a5e93d-206d-4ba8-81e6-c6fe0db3cf02.jpg)
+
 ```
 위와 같이 fallack 옵션이 동작하여 "Circuit breaker has been opened. Fallback returned instead." 로그가 보여진다
 
