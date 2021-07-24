@@ -384,7 +384,7 @@ public interface PaymentService {
 }
 ```
 동기식 호출로 인하여, 지불 서비스에 장애 발생 시(서비스 다운) 주문관리 서비스에도 장애가 전파된다는 것을 확인
-```
+
 Ordermanagement, Settlement 서비스 구동 & Payment 서비스 다운 되어 있는 상태에서는 주문 생성 시 오류 발생
 
 ![11](https://user-images.githubusercontent.com/60598148/126857750-d5c6a7df-a604-4d65-a5c8-c4abb7b9fac7.jpg)
@@ -392,7 +392,7 @@ Ordermanagement, Settlement 서비스 구동 & Payment 서비스 다운 되어 �
 
 --> Payment 서비스 구동하여 주문 재생성 시 정상적으로 생성됨
 ![12](https://user-images.githubusercontent.com/60598148/126857758-ab7c1376-750c-4aa9-9cdc-8765ea71d618.jpg)
-```
+
 
 - 서킷브레이커를 통하여 장애를 격리시킬 수 있는가?
 
@@ -447,13 +447,10 @@ fallback 기능 없이 payment 서비스를 중지하고 주문 생성 시에는
 
 위와 같이 fallback 기능 활성화 후에는 payment서비스가 동작하지 않더라도 주문 생성 시에 오류가 발생하지 않는다
 
-```
 ![12](https://user-images.githubusercontent.com/60598148/126857763-a5cef1df-c167-4ef4-af39-c05678aaf6a6.jpg)
 ![13](https://user-images.githubusercontent.com/60598148/126857766-fc173028-c51c-409e-b543-11463e4f405d.jpg)
 
 
-
-```
 위와 같이 fallack 옵션이 동작하여 "Circuit breaker has been opened. Fallback returned instead." 로그가 보여진다
 
 
@@ -464,72 +461,69 @@ fallback 기능 없이 payment 서비스를 중지하고 주문 생성 시에는
 
 - Correlation-key: 각 이벤트 건 (메시지)가 어떠한 폴리시를 처리할때 어떤 건에 연결된 처리건인지를 구별하기 위한 Correlation-key 연결을 제대로 구현 하였는가?
 
-카프카를 이용하여 주문완료 시 결제 처리를 제외한 나머지 모든 마이크로서비스 트랜잭션은 Pub/Sub 관계로 구현하였다. 
+카프카를 이용하여 배달완료 시 지불 처리를 제외한 나머지 모든 마이크로서비스 트랜잭션은 Pub/Sub 관계로 구현하였다. 
 
-아래는 주문취소 이벤트(OrderCanceled)를 카프카를 통해 주문관리(ordermanagement) 서비스에 연계받는 코드 내용이다. 
+아래는 배달완료 이벤트(OrderFinished)를 카프카를 통해 주문관리(settlement) 서비스에 연계받는 코드 내용이다. 
 
-order 서비스에서는 고객이 주문 취소 시 PostUpdate로 OrderCanceled 이벤트를 발생시키고,
+ordermgmt 서비스에서는 배달원이 배달완료 시 PostUpdate로 Orerfinished 이벤트를 발생시키고,
 ```
-public class Order {
+public class Ordermgmt {
     @PostUpdate
-      public void onPostUpdate(){
-        OrderCanceled orderCanceled = new OrderCanceled();
-        BeanUtils.copyProperties(this, orderCanceled);
-        orderCanceled.publishAfterCommit();
+    public void onPostUpdate(){
+
+        if (this.orderStatus.equals("finished")){
+            OrderFinished orderFinished = new OrderFinished();
+            BeanUtils.copyProperties(this, orderFinished);
+            orderFinished.publishAfterCommit();            
+            bookdelivery.external.Payment payment = new bookdelivery.external.Payment();
+
+        }
+        else{
+        CancelOrderTaken cancelOrderTaken = new CancelOrderTaken();
+        BeanUtils.copyProperties(this, cancelOrderTaken);
+        cancelOrderTaken.publishAfterCommit();
+        }
     }
 ```
 
-ordermanagement 서비스에서는 카프카 리스너를 통해 order의 OrderCanceled 이벤트를 수신받아서 폴리시(cancelOrder) 처리하였다. (getOrderId()를 호출하여 Correlation-key 연결)
+settlement 서비스에서는 카프카 리스너를 통해 ordermgmt의 OrderFinished 이벤트를 수신받아서 폴리시(updateSettlement) 처리하였다. (getOrderId()를 호출하여 Correlation-key 연결)
 ```
 @Service
 public class PolicyHandler{
-  @StreamListener(KafkaProcessor.INPUT)
-    public void wheneverOrderCanceled_CancelOrder(@Payload OrderCanceled orderCanceled){
+ @StreamListener(KafkaProcessor.INPUT)
+    
+    public void wheneverOrderFinished_UpdateSettlement(@Payload OrderFinished orderfinished){
 
-        if(!orderCanceled.validate()) return;
+        //System.out.println("리스너 체크");
 
-        System.out.println("\n\n##### listener CancelOrder : " + orderCanceled.toJson() + "\n\n");
+        if(!orderfinished.validate()) return;
 
-        // 주문 취소시 상태 UPDATE 필요, Correlation-key 연결
-        ordermgmtRepository.findByOrderId(orderCanceled.getOrderId()).ifPresent(ordermgmt->{
-            ordermgmtRepository.save(ordermgmt);
-        });
+        // Sample Logic //
+        // Settlement settlement = new Settlement();
+        // settlementRepository.save(settlement);
+
+        settlementRepository.findByOrderId(orderfinished.getOrderId()).ifPresent(settlement->{           
+            settlement.setOrderStatus("deliveryfinished");//add
+            settlementRepository.save(settlement);
+        });         
     }
+  }
 ```
+
 
 
 - Scaling-out: Message Consumer 마이크로서비스의 Replica 를 추가했을때 중복없이 이벤트를 수신할 수 있는가?
 
-배송(delievery)서비스의 포트 추가(기존:8083, 추가:8093)하여 2개의 노드로 배송서비스를 실행한다. bookdelivery topic의 partition은 1개이기 때문에 기존 8083 포트의 서비스만 partition이 할당된다.
-![image](https://user-images.githubusercontent.com/78421066/125026479-a534ac00-e0bf-11eb-878c-0a4e6cf3c5d9.png)
+정산(settlement)서비스의 포트 추가(기존:8085, 추가:8087)하여 2개의 노드로 배송서비스를 실행한다. bookdelivery topic의 partition은 1개이기 때문에 기존 8085 포트의 서비스만 partition이 할당된다.
 
+주문관리서비스(ordermanagement)에서 이벤트가 발생하면 8085포트에 있는 settlement서비스에게만 이벤트 메세지가 수신되게 된다.
+![15](https://user-images.githubusercontent.com/60598148/126858337-3f60fad2-bd92-422f-b6ae-ea5b26e138ce.jpg)
 
-주문관리서비스(ordermanagement)에서 이벤트가 발생하면 8083포트에 있는 delivery서비스에게만 이벤트 메세지가 수신되게 된다.
-```
-##### listener StartDelivery : {"eventType":"OrderTaken","timestamp":"20210709140205","orderMgmtId":6,"orderId":1,"
-itemId":1,"itemName":"ITbook","qty":1,"customerName":"HanYongSun","deliveryAddress":"kyungkido sungnamsi","delivery
-PhoneNumber":"01012341234","orderStatus":"order"}
+8087포트의 delivery서비스의 경우 메세지를 수신받지 못한다.
 
+8085 포트를 중지 시키면 8087포트의 settlement 서비스에서 partition을 할당받는다
+![16](https://user-images.githubusercontent.com/60598148/126858341-c30ab742-bde0-46cf-8a6b-a2c32a12cdb4.jpg)
 
-Hibernate:
-    call next value for hibernate_sequence
-Hibernate:
-    insert
-    into
-        delivery_table
-        (customer_name, delivery_address, delivery_phone_number, order_id, order_status, delivery_id)
-    values
-        (?, ?, ?, ?, ?, ?)
-```
-
-8093포트의 delivery서비스의 경우 메세지를 수신받지 못한다.
-
-```
-변동사항 없음
-```
-
-8083 포트를 중지 시키면 8093포트의 delivery 서비스에서 partition을 할당받는다
-![image](https://user-images.githubusercontent.com/78421066/125026249-1fb0fc00-e0bf-11eb-9af2-d9888005c67a.png)
 
 ### SAGA 패턴
 - 취소에 따른 보상 트랜잭션을 설계하였는가(Saga Pattern)
