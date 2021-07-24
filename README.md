@@ -1,5 +1,5 @@
 # bookdelivery
-Lv.2 Intensive Coursework Group 3
+Lv.2 Intensive Coursework - Kimg Sung-Hwan
 
 <img src="https://user-images.githubusercontent.com/85722733/124438926-c0e43d80-ddb3-11eb-9d37-d89e8a7193eb.png"  width="50%" height="50%">
 
@@ -37,16 +37,28 @@ Lv.2 Intensive Coursework Group 3
 6. 고객이 주문을 취소할 수 있다
 7. 주문이 취소되면 배송 및 결제가 취소된다
 8. 고객이 주문상태를 중간중간 조회한다
-9. 주문/배송상태가 바뀔 때마다 고객이 마이페이지에서 상태를 확인할 수 있다
+9. 주문/배송상태가 바뀔 때마다 고객이 마이페이지에서 상태를 확인할 수 있다.
+10. 상점주인이 주문 접수 시 정산(Settlement) 시스템에 반영이 된다
+
+# 추가 시나리오
+
+### 11. 배송원이 배달완료 처리를 한다
+### 12. 배달완료가 되면 자동으로 상점주인에게 정산이 된다
+### 13. 정산이 되면 정산((Settlement)에 반영이 된다
+### 14. 상점주인이 주문상태와 정산상태를 중간중간 조회를 한다
+
 
 비기능적 요구사항
 1. 트랜잭션
   - 결제가 완료되어야만 주문이 완료된다 (결제가 되지 않은 주문건은 아예 거래가 성립되지 않아야 한다 Sync 호출)
+###   - 배달이 완료되어야만 정산이 된다 (배달이 되지 않은건은 정산이 성립되지 않아야 한다. Sync 호출)
 2. 장애격리
   - 주문관리(Ordermanagement) 기능이 수행되지 않더라도 주문(Order)은 365일 24시간 받을 수 있어야 한다 Async (event-driven), Eventual Consistency 
-  - 결제시스템이 과중되면 사용자를 잠시동안 받지 않고 결제를 잠시후에 하도록 유도한다 Circuit breaker, fallback
+###   - 정산(Settlement) 기능이 수행되지 않더라도 주문관리(Ordermanagement)은 365일 24시간 받을 수 있어야 한다 Async (event-driven), Eventual Consistency
+###   - 결제시스템이 과중되면 사용자를 잠시동안 받지 않고 결제를 잠시후에 하도록 유도한다 Circuit breaker, fallback
 3. 성능
   - 고객이 마이페이지에서 배송상태를 확인할 수 있어야 한다 CQRS
+###   - 상점주인이 마이페이지에서 배송상태를 확인할 수 있어야 한다 CQRS
 
 
 # 체크포인트
@@ -109,36 +121,29 @@ Lv.2 Intensive Coursework Group 3
 
 # 분석/설계
 
-
-## AS-IS 조직 (Horizontally-Aligned)
-  ![image](https://user-images.githubusercontent.com/487999/79684144-2a893200-826a-11ea-9a01-79927d3a0107.png)
-
-## TO-BE 조직 (Vertically-Aligned)
-  <img src="https://user-images.githubusercontent.com/85722733/124564081-a9708780-de7b-11eb-93aa-42c819be9059.png"  width="80%" height="80%">
-
-
 ## Event Storming 결과
-* MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/storming/null/348fa7c90636e01a5525272b163ef307
+* MSAEz 로 모델링한 이벤트스토밍 결과: http://www.msaez.io/#/storming/o3vDx7FSYPdgNQwy5allxyoOnYg2/1f14577a07cd2d737e2630e7659d476a
 
 
 ### 이벤트 도출
-<img src="https://user-images.githubusercontent.com/85722733/124441029-39e49480-ddb6-11eb-8310-132caa4c887e.png"  width="80%" height="80%">
+![1](https://user-images.githubusercontent.com/60598148/126855260-fae899b9-296a-431a-9a3a-74ef8e779ab3.jpg)
+
 
 ### 부적격 이벤트 탈락
-<img src="https://user-images.githubusercontent.com/85722733/124441079-48cb4700-ddb6-11eb-8d12-57845e061f62.png"  width="80%" height="80%">
+![2](https://user-images.githubusercontent.com/60598148/126855262-6200c89f-31ff-448b-9494-48d04a5971f0.jpg)
 
     - 과정중 도출된 잘못된 도메인 이벤트들을 걸러내는 작업을 수행함
         - '주문내역이 상점에 전달됨' 및 '주문상태 업데이트됨'은 이벤트에 의한 반응에 가까우므로 이벤트에서 제외
         - '마이페이지에서 조회됨'은 발생한 사실, 결과라고 보기 어려우므로 이벤트에서 제외
 
 ### 액터, 커맨드 부착하여 읽기 좋게
-<img src="https://user-images.githubusercontent.com/85722733/124451688-9ba9fc00-ddc0-11eb-815e-0e0c6f685b69.png"  width="65%" height="65%">
+![3](https://user-images.githubusercontent.com/60598148/126855442-db728ae0-55d2-4b4d-b3ae-2a035c85e532.jpg)
 
 ### 어그리게잇으로 묶기
-<img src="https://user-images.githubusercontent.com/85722733/124451712-a5336400-ddc0-11eb-9561-e47f8b28b205.png"  width="80%" height="80%">
-
-    - 고객의 주문, 상점의 주문관리, 결제의 결제이력, 배송의 배송이력은 그와 연결된 command 와 event 들에 의하여 트랜잭션이 유지되어야 하는 단위로 그들끼리 묶어줌
-
+![4](https://user-images.githubusercontent.com/60598148/126855529-4967f5dc-f2bf-46dd-92ee-7831bf2e1d9e.jpg)
+    
+    - 상점의 주문관리, 결제의 결제이력, 정산과 연결된 command 와 event 들에 의하여 트랜잭션이 유지되어야 하는 단위로 묶어줌
+    
 ### 바운디드 컨텍스트로 묶기
 
 <img src="https://user-images.githubusercontent.com/85722733/124451753-aebccc00-ddc0-11eb-91ca-6b6355106898.png"  width="80%" height="80%">
