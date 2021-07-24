@@ -215,99 +215,97 @@ Lv.2 Intensive Coursework - Kimg Sung-Hwan
 분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 바운더리 컨텍스트 별로 대변되는 마이크로 서비스들을 스프링부트로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다)
 
 ```
-cd order
+cd ordermanagement
 mvn spring-boot:run
 
-cd payment
+cd settlement
 mvn spring-boot:run 
 
-cd ordermanagement
+cd partner
 mvn spring-boot:run  
-
-cd delivery
-mvn spring-boot:run 
 ```
 
 ## DDD 의 적용
 
 - Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 데이터 접근 어댑터를 개발하였는가? 
 
-각 서비스 내에 도출된 핵심 Aggregate Root 객체를 Entity로 선언하였다. (주문(order), 결제(payment), 주문관리(ordermgmt), 배송(delivery))
+각 서비스 내에 도출된 핵심 Aggregate Root 객체를 Entity로 선언하였다. (주문관리(ordermgmt), 정산(settlement), 파트너(partner))
 
-주문관리 Entity (Ordermgmt.java)
+정산  Entity (Settlement.java)
 ```
 @Entity
-@Table(name="Ordermgmt_table")
-public class Ordermgmt {
+@Table(name="Settlement_table")
+public class Settlement {
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
-    private Long orderMgmtId;
+    private Long settlementid; 
     private Long orderId;
-    private Long itemId;
-    private String itemName;
+    private Long sellerid;
+    private Long itemid;
     private Integer qty;
-    private String customerName;
-    private String deliveryAddress;
-    private String deliveryPhoneNumber;
+    private Integer itemPrice;
     private String orderStatus;
 
-    @PostPersist
+    @PostPersist    
     public void onPostPersist(){
-        OrderTaken orderTaken = new OrderTaken();
-        BeanUtils.copyProperties(this, orderTaken);
-        orderTaken.publishAfterCommit();
+        
+        Settled settled = new Settled();
+        BeanUtils.copyProperties(this, settled);
+        settled.publishAfterCommit();
     }
+
 
     @PostUpdate
     public void onPostUpdate(){
-        CancelOrderTaken cancelOrderTaken = new CancelOrderTaken();
-        BeanUtils.copyProperties(this, cancelOrderTaken);
-        cancelOrderTaken.publishAfterCommit();
+    
+        Settled settled = new Settled();
+        BeanUtils.copyProperties(this, settled);
+        settled.publishAfterCommit();
+
+        bookdelivery.external.Payment payment = new bookdelivery.external.Payment();
+        //mappings goes here
+        payment.setSettlementid(settled.getSettlementid());
+        payment.setOrderid(settled.getOrderId());        
+        payment.setQty(settled.getQty());
+        payment.setItemid(settled.getItemid());
+        payment.setItemPrice(settled.getItemPrice());        
+        payment.setOrderStatus("paid");
+        SettlementApplication.applicationContext.getBean(bookdelivery.external.PaymentService.class)
+            .pay(payment);
+            System.out.println("페이먼트 생성" + payment.getOrderStatus());
     }
 
-    public Long getOrderMgmtId() {
-        return orderMgmtId;
+    public Long getSettlementid() {
+        return settlementid;
     }
 
-    public void setOrderMgmtId(Long orderMgmtId) {
-        this.orderMgmtId = orderMgmtId;
+    public void setSettlementid(Long settlementid) {
+        this.settlementid = settlementid;
     }
-
     public Long getOrderId() {
         return orderId;
     }
 
-    public void setOrderId(Long orderId) {
+    public void setOrderid(Long orderId) {
         this.orderId = orderId;
     }
-
-    public Long getItemId() {
-        return itemId;
-    }
-
-    public void setItemId(Long itemId) {
-        this.itemId = itemId;
-    }
-
-    public String getItemName() {
-        return itemName;
-    }
-    .... 생략
+       .... 생략
 ```
 
 Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 하였고 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다 
 
-OrdermgmtRepository.java
+SettlementRepository.java
 ```
 package bookdelivery;
 
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+import java.util.Optional;
 
-@RepositoryRestResource(collectionResourceRel="ordermgmts", path="ordermgmts")
-public interface OrdermgmtRepository extends PagingAndSortingRepository<Ordermgmt, Long>{
-
+@RepositoryRestResource(collectionResourceRel="settlements", path="settlements")
+public interface SettlementRepository extends PagingAndSortingRepository<Settlement, Long>{    
+    Optional<Settlement> findByOrderId(Long orderId);
 }
 ```
 
