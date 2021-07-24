@@ -387,11 +387,11 @@ public interface PaymentService {
 ```
 Ordermanagement, Settlement 서비스 구동 & Payment 서비스 다운 되어 있는 상태에서는 주문 생성 시 오류 발생
 
-![payment서비스내려갔을때 오류](https://user-images.githubusercontent.com/60598148/126857549-e68d4874-e59a-4492-8acf-d2379946222f.jpg)
+![11](https://user-images.githubusercontent.com/60598148/126857750-d5c6a7df-a604-4d65-a5c8-c4abb7b9fac7.jpg)
 
 
 --> Payment 서비스 구동하여 주문 재생성 시 정상적으로 생성됨
-![payment올라갔을때 정상 작동](https://user-images.githubusercontent.com/60598148/126857554-7fa0dbe3-85e0-4de9-be1e-50b304644fcd.jpg)
+![12](https://user-images.githubusercontent.com/60598148/126857758-ab7c1376-750c-4aa9-9cdc-8765ea71d618.jpg)
 ```
 
 - 서킷브레이커를 통하여 장애를 격리시킬 수 있는가?
@@ -448,7 +448,10 @@ fallback 기능 없이 payment 서비스를 중지하고 주문 생성 시에는
 위와 같이 fallback 기능 활성화 후에는 payment서비스가 동작하지 않더라도 주문 생성 시에 오류가 발생하지 않는다
 
 ```
-![13](https://user-images.githubusercontent.com/60598148/126857700-26a5e93d-206d-4ba8-81e6-c6fe0db3cf02.jpg)
+![12](https://user-images.githubusercontent.com/60598148/126857763-a5cef1df-c167-4ef4-af39-c05678aaf6a6.jpg)
+![13](https://user-images.githubusercontent.com/60598148/126857766-fc173028-c51c-409e-b543-11463e4f405d.jpg)
+
+
 
 ```
 위와 같이 fallack 옵션이 동작하여 "Circuit breaker has been opened. Fallback returned instead." 로그가 보여진다
