@@ -534,57 +534,26 @@ SAGA 패턴은 각 서비스의 트랜잭션 완료 후에 다음 서비스가 �
 
 #### SAGA 패턴에 맞춘 트랜잭션 실행
 
-![사가1](https://user-images.githubusercontent.com/85722733/125202925-f0fa7780-e2b0-11eb-9ab9-370213664955.png)
-
-order 서비스의 주문 생성이 완료되면 payment 서비스를 트리거하게 되고 결제를 발생시킨다
-
-실행한 결과는 아래와 같다
-
-![1_order생성](https://user-images.githubusercontent.com/85722733/125205577-e2ff2380-e2bd-11eb-821f-a80e801d3352.jpg)
-
-![2_payment생성되어있음](https://user-images.githubusercontent.com/85722733/125205593-fca06b00-e2bd-11eb-821f-be4f864ab807.jpg)
-
-주문 생성 시 결국 결제가 발생하여 결제 승인이 나게 되며, 
-
-![2_카프카orderplaced](https://user-images.githubusercontent.com/85722733/125205607-0c1fb400-e2be-11eb-831c-5d833a2be269.jpg)
-
-이를 ordermanagement 서비스에서 연계받아 주문내역을 수신받게 된다
-
-![5_주문내역전달](https://user-images.githubusercontent.com/85722733/125205624-20fc4780-e2be-11eb-81dd-5d7dd97f7be8.jpg)
-
-점주가 주문을 접수하여 주문접수 건이 생성되면 
-
-![6_주문접수생성](https://user-images.githubusercontent.com/85722733/125205658-49844180-e2be-11eb-953b-4732d80bcea4.jpg)
-
-delivery 서비스에서 배송시작 이벤트가 트리거 된다
-
-![6_5_startdelivery](https://user-images.githubusercontent.com/85722733/125205664-52751300-e2be-11eb-9c72-3680aee4a68a.jpg)
-
-![7_카프카주문접수배달시작](https://user-images.githubusercontent.com/85722733/125205667-59038a80-e2be-11eb-9d30-a1d453635722.jpg)
+![17](https://user-images.githubusercontent.com/60598148/126858544-c7a397e0-cf7f-458b-9573-a60f4cb79bef.jpg)
 
 
-#### SAGA 패턴에 맞춘 Roll-Back 
-![사가2](https://user-images.githubusercontent.com/85722733/125394755-230cf600-e3e5-11eb-918b-48ddbb4e740d.png)
-
-order 서비스에서 주문취소가 발생하면 발행된 이벤트가 ordermanagement 서비스, payment 서비스, delivery 서비스로 트리거되어 해당 주문에 대해 주문접수취소, 결제취소 및 배송취소가 되도록 보상 트랜잭션을 발생시킨다
+ordermgmt 서비스의 배달완료로 입력을 받으면 ordermgmt의 orderStatus가 갱신이 되며, settlement에서는 해당 주문건의 상태를 업데이트한다.
 
 실행한 결과는 아래와 같다
 
-고객의 주문취소로 인하여 주문 상태를 주문취소로 업데이트 시 
+![18](https://user-images.githubusercontent.com/60598148/126858780-67360264-8440-4083-8440-92cbc4da3263.jpg)
 
-![8_주문취소](https://user-images.githubusercontent.com/85722733/125205690-7cc6d080-e2be-11eb-972f-3877814c55e6.jpg)
+![19](https://user-images.githubusercontent.com/60598148/126858785-c9dbe7d7-e744-4756-ad02-10d4073f0346.jpg)
 
-OrderCanceled 이벤트로 인하여 orderManagement 서비스에서 주문상태가 주문접수취소로 업데이트되어 이벤트가 발생되고
+![23](https://user-images.githubusercontent.com/60598148/126858815-5d145955-d3bf-420e-8901-129d14410a9b.jpg)
 
-![8_5_주문접수취소호출](https://user-images.githubusercontent.com/85722733/125205700-8f410a00-e2be-11eb-8e9e-65560408ad0f.jpg)
+배달완료 시 결국 지불이 발생하여 지불이 완료되며, 
 
-이로 인해 트리거되어 payment 및 delivery 서비스에서도 취소 이벤트가 발생하게 된다
+![21](https://user-images.githubusercontent.com/60598148/126858852-b9e93ef9-a962-4a9e-817e-a79c935d1724.jpg)
 
-![8_5_결제취소호출](https://user-images.githubusercontent.com/85722733/125205708-9b2ccc00-e2be-11eb-9f26-788b5e07a017.jpg)
+이를 settelment 서비스에서 연계받아 지불내역을 수신받게 된다
 
-![8_5_배송취소호출](https://user-images.githubusercontent.com/85722733/125205702-95cf8180-e2be-11eb-95ba-50910f689f65.jpg)
-
-![9_카프카취소이벤트](https://user-images.githubusercontent.com/85722733/125205715-a1bb4380-e2be-11eb-840a-f6680d818979.jpg)
+![22](https://user-images.githubusercontent.com/60598148/126858866-c632c0c9-b375-415c-875f-f17af03fcf12.jpg)
 
 
 ### CQRS
