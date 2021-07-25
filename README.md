@@ -813,132 +813,19 @@ http PUT http://localhost:8082/ordermgmts/1 orderId=2 itemId=2 orderStatus="fini
 
 - API GW를 통하여 마이크로 서비스들의 진입점을 통일할 수 있는가?
 
-아래는 MSAEZ를 통해 자동 생성된 gateway 서비스의 application.yml이며, 마이크로서비스들의 진입점을 통일하여 URL Path에 따라서 마이크로서비스별 서로 다른 포트로 라우팅시키도록 설정되었다.
+아래는 gateway 서비스의 application.yml이며, 마이크로서비스들의 진입점을 통일하여 URL Path에 따라서 마이크로서비스별 서로 다른 포트로 라우팅시키도록 설정되었다.
 
 gateway 서비스의 application.yml 파일 
 
-```
-server:
-  port: 8088
+![33](https://user-images.githubusercontent.com/60598148/126889525-dc1cc990-35b5-4ffc-bb2c-36ad9dc7556c.jpg)
 
----
 
-spring:
-  profiles: default
-  cloud:
-    gateway:
-      routes:
-        - id: order
-          uri: http://localhost:8081
-          predicates:
-            - Path=/orders/**, /myPages/**
-        - id: ordermanagement
-          uri: http://localhost:8082
-          predicates:
-            - Path=/ordermgmts/** 
-        - id: delivery
-          uri: http://localhost:8083
-          predicates:
-            - Path=/deliveries/** 
-        - id: payment
-          uri: http://localhost:8084
-          predicates:
-            - Path=/payments/** 
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins:
-              - "*"
-            allowedMethods:
-              - "*"
-            allowedHeaders:
-              - "*"
-            allowCredentials: true
+Gateway 포트인 8088을 통해서 주문접수를 생성시켜 8082 포트에서 서비스되고 있는 주문관리서비스(ordermgmt)가 정상 동작함을 확인함
 
----
-```
+![34](https://user-images.githubusercontent.com/60598148/126889581-8b1c1915-5c61-4db6-b28b-647c36605d71.jpg)
 
-Gateway 포트인 8088을 통해서 주문을 생성시켜 8081 포트에서 서비스되고 있는 주문서비스(order)가 정상 동작함을 확인함
 
-![GW2](https://user-images.githubusercontent.com/85722733/125040735-f13d1c00-e0d2-11eb-9a60-e2f1ba6a5e51.png)
 
-- 게이트웨이와 인증서버(OAuth), JWT 토큰 인증을 통하여 마이크로서비스들을 보호할 수 있는가?
-
-gateway(8088 포트)를 통한 orders, payments, ordermgmts, deliveries 경로 접근은 차단하도록 환경 설정을 하였다.
-pathMatchers("/oauth/","/login/").permitAll() : /oauth/, /login/ 경로만 게이트웨이에서 접근이 가능하도록 하였다.
-oauth2ResourceServer() : 인증서버를 이용, jwt() : jwt 방식 인증
-
-```
-   @Bean
-    SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) throws Exception {
-
-        http
-                .cors().and()
-                .csrf().disable()
-                .authorizeExchange()
-                .pathMatchers("/oauth/**","/login/**").permitAll()
-                .anyExchange().authenticated()
-                .and()
-                .oauth2ResourceServer()
-                .jwt()
-                ;
-
-        return http.build();
-    }
-```
-
-인증서버(OAuth)의 경우 해당 아이디(1@uengine.org)와 패스워드(1)로 접근한 사용자만 토큰값을 얻어서 접근 할 수 있도록 구현하였다.
-```
-		User user = new User();
-		user.setUsername("1@uengine.org");
-		user.setPassword(passwordEncoder.encode("1"));
-		user.setNickName("유엔진");
-		user.setAddress("서울시");
-		user.setRole("USER_ADMIN");
-		repository.save(user);
-```
-
-인증서버(OAuth)와 gateway서버(gateway-master)를 실행시킨다.
-```
-cd OAuth
-mvn spring-boot:run
-
-cd gateway-master
-mvn spring-boot:run
-```
-
-gateway(8088포트)를 통해 ordermgmts로 접근을 하면 유효하지 않은 인증(401 Unauthorized) 나오게 된다.
-
-```
-$ http localhost:8088/ordermgmts
-HTTP/1.1 401 Unauthorized
-Cache-Control: no-cache, no-store, max-age=0, must-revalidate
-Expires: 0
-Pragma: no-cache
-Referrer-Policy: no-referrer
-Vary: Origin
-Vary: Access-Control-Request-Method
-Vary: Access-Control-Request-Headers
-WWW-Authenticate: Bearer
-X-Content-Type-Options: nosniff
-X-Frame-Options: DENY
-X-XSS-Protection: 1 ; mode=block
-content-length: 0
-```
-
-인증을 하기 위해서 토큰값을 갖고 온다.
-
-```
-http --form POST localhost:8090/oauth/token "Authorization: Basic dWVuZ2luZS1jbGllbnQ6dWVuZ2luZS1zZWNyZXQ=" grant_type=password username=1@uengine.org password=1
-```
-![image](https://user-images.githubusercontent.com/78421066/125151912-8ba96800-e184-11eb-8523-c816453bcd27.png)
-
-해당 access_token 값을 가지고 다시 localhost:8088/ordermgmts에 접속하면 인증됨을 확인 할 수 있다.
-
-```
-http localhost:8088/ordermgmts "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZGRyZXNzIjoi7ISc7Jq47IucIiwidXNlcl9uYW1lIjoiMUB1ZW5naW5lLm9yZyIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSIsInRydXN0Il0sIm5pY2tuYW1lIjoi7Jyg7JeU7KeEIiwiY29tcGFueSI6IlVlbmdpbmUiLCJleHAiOjE2MjU5Nzg0NjQsImF1dGhvcml0aWVzIjpbIlVTRVJfQURNSU4iXSwianRpIjoiZ1l6cEltL29RYytucC9iYVZacGZYazNIU3k0PSIsImNsaWVudF9pZCI6InVlbmdpbmUtY2xpZW50In0.Ic56B-RPB4voEPSnQ_IecmSwbgqg2x7FojMFohKvHzMnKzA_6yb72vFs-ay3T7DSyplD22bdHvE1yEYV8oTzAv47srcjS4YLMnM9BDVLartkltfaj-DkXuiNRDbvesIKp4tTv3gFEQ16deocvY9W5Dv-Hkhqk_Hy4SlR2LKdKD2Q5yHDM4kqsNesjPFnRydJqHLgv0l9LIF76VJI5woMFJ8H6mRGE8DKJOvOF2DwItc8MzqgwILQV4WYzw8yRy_CZjR2hDG1wsqqhi1YlQWfgySRrFsaXAYv08h_rMPzudpncNOXM1i9SZlXcX0-BI03GCO6RmLMmo-NonTkSk5JTg"
-```
-![image](https://user-images.githubusercontent.com/78421066/125152033-30c44080-e185-11eb-902e-b9151c180b8c.png)
 
 # 운영
 ## Deploy/Pipeline
