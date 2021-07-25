@@ -527,7 +527,6 @@ public class PolicyHandler{
 
 
 ### SAGA 패턴
-- 취소에 따른 보상 트랜잭션을 설계하였는가(Saga Pattern)
 
 SAGA 패턴은 각 서비스의 트랜잭션 완료 후에 다음 서비스가 트리거 되어 트랜잭션을 실행하는 방법으로
 
