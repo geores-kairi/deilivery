@@ -560,13 +560,13 @@ ordermgmt 서비스의 배달완료로 입력을 받으면 ordermgmt의 orderSta
 ### CQRS
 - CQRS: Materialized View 를 구현하여, 타 마이크로서비스의 데이터 원본에 접근없이(Composite 서비스나 조인SQL 등 없이) 도 내 서비스의 화면 구성과 잦은 조회가 가능한가?
 
-주문/배송상태가 바뀔 때마다 고객이 마이페이지에서 상태를 확인할 수 있어야 한다는 요구사항에 따라 주문 서비스 내에 MyPage View를 모델링하였다
+배송상태변경/정산지급 될때 점주가 마이페이지에서 상태를 확인할 수 있어야 한다는 요구사항에 따라 주문 서비스 내에 MyPage View를 모델링하였다
 
 ![mypage](https://user-images.githubusercontent.com/85722733/125193030-68b2ad00-e285-11eb-9261-4b2dbf5cfb91.png)
 
-주문에 대한 결제완료(PayApproved) 시 orderId를 키값으로 MyPage 데이터도 생성되며 (요구사항으로 결제가 완료된 건에 대해서만 주문으로 인정하므로)
+주문에 대한 접수(orderTaken) 시 orderId를 키값으로 MyPage 데이터도 생성되며 
 
-"결제완료(주문완료), 주문접수, 배송시작, 결제취소(주문취소)"의 이벤트에 따라 주문상태가 업데이트되도록 모델링하였다
+"배송완료, 정산지급"의 이벤트에 따라 정산상태가 업데이트되도록 모델링하였다
 
 MyPage View 의 속성값
 
