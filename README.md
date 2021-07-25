@@ -767,83 +767,47 @@ CQRS 테스트
 
 - Message Consumer 마이크로서비스가 장애상황에서 수신받지 못했던 기존 이벤트들을 다시 수신받아 처리하는가?
 
-ordermanagement 서비스만 구동되고 delivery 서비스는 멈춰있는 상태이다. 주문관리에 이벤트가 발생하면 카프카 큐에 정상적으로 들어감을 확인할 수 있다.
-```
+ordermanagement 서비스만 구동되고 settlement 서비스는 멈춰있는 상태이다. 주문관리에 이벤트가 발생하면 카프카 큐에 정상적으로 들어감을 확인할 수 있다.
+
 주문관리 이벤트 생성
-$ http localhost:8082/ordermgmts orderId=1 itemId=1 itemName="ITbook" qty=1 customerName="HanYongSun" deliveryAddress="kyungkido sungnamsi" deliveryPhoneNumber="01012341234" orderStatus="order"
-HTTP/1.1 201
-Content-Type: application/json;charset=UTF-8
-Date: Thu, 08 Jul 2021 23:16:56 GMT
-Location: http://localhost:8082/ordermgmts/1
-Transfer-Encoding: chunked
 
-{
-    "_links": {
-        "ordermgmt": {
-            "href": "http://localhost:8082/ordermgmts/1"
-        },
-        "self": {
-            "href": "http://localhost:8082/ordermgmts/1"
-        }
-    },
-    "customerName": "HanYongSun",
-    "deliveryAddress": "kyungkido sungnamsi",
-    "deliveryPhoneNumber": "01012341234",
-    "itemId": 1,
-    "itemName": "ITbook",
-    "orderId": 1,
-    "orderStatus": "order",
-    "qty": 1
-}
-```
+![27](https://user-images.githubusercontent.com/60598148/126886477-e174a058-7803-4979-9243-d89eca197604.jpg)
+
+
 카프카 Consumer 캡쳐
-![image](https://user-images.githubusercontent.com/78421066/125002634-5d4a6080-e090-11eb-8e55-994bf1c64a33.png)
+
+![28](https://user-images.githubusercontent.com/60598148/126886483-f83d9aa0-65b4-4cb6-be34-a031a509b280.jpg)
 
 
-배송(delivery)서비스 실행 및 실행 후 카프카에 적재된 메세지 수신 확인
-```
-cd delivery
-mvn spring-boot:run
+정산(settlement)서비스 실행 및 실행 후 카프카에 적재된 메세지 수신 확인
 
-##### listener StartDelivery : {"eventType":"OrderTaken","timestamp":"20210709081656","orderMgmtId":1,"orderId":1,"itemId":1,"itemName":"ITbook","qty":1,"customerName":"HanYongSun","deliveryAddress":"kyungkido sungnamsi","del
-iveryPhoneNumber":"01012341234","orderStatus":"order"}
+![29](https://user-images.githubusercontent.com/60598148/126886519-1b902b3b-e37a-4ddd-b346-05653706df32.jpg)
 
-
-Hibernate:
-    call next value for hibernate_sequence
-Hibernate:
-    insert
-    into
-        delivery_table
-        (customer_name, delivery_address, delivery_phone_number, order_id, order_status, delivery_id)
-    values
-        (?, ?, ?, ?, ?, ?)
-```
-카프카 Consumer 캡쳐
-![image](https://user-images.githubusercontent.com/78421066/125002840-ca5df600-e090-11eb-992c-ed72ee7cfca8.png)
 
 
 ## 폴리글랏 퍼시스턴스
 
 - 각 마이크로 서비스들이 각자의 저장소 구조를 자율적으로 채택하고 각자의 저장소 유형 (RDB, NoSQL, File System 등)을 선택하여 구현하였는가?
 
-Payment 서비스의 경우 타 서비스들의 비해 안정성이 중요하다고 생각하였다. H2 DB의 경우 대규모 주문이 발생시 안정성과 성능이 아직은 부족하다고 생각했다. 그래서 안정성과 성능이 높은 DB와 경제성(라이센스 비용)에 강점이 있는 Maria DB를 선택하게 되었다.
+payment 서비스의 경우 타 서비스들의 비해 안정성이 중요하다고 생각하였다. H2 DB의 경우 대규모 주문이 발생시 안정성과 성능이 아직은 부족하다고 생각했다. 그래서 안정성과 성능이 높은 DB와 경제성(라이센스 비용)에 강점이 있는 MySQL DB를 선택하게 되었다.
 
 Payment서비스 pom.xml 의존성을 변경해 주었다.
 
-![image](https://user-images.githubusercontent.com/78421066/125373411-12965480-e3c0-11eb-83a1-ca712db9ae3e.png)
+![31](https://user-images.githubusercontent.com/60598148/126889319-51500f35-c5ad-4fef-ab43-20d5ce947aac.jpg)
+
 
 application.yml 파일에 dababase 속성도 넣어주었다.
 
-![image](https://user-images.githubusercontent.com/78421066/125383139-e8e62900-e3d1-11eb-868d-5637127f8c45.png)
+![30](https://user-images.githubusercontent.com/60598148/126889321-0f96845b-c15b-4208-8130-7b9ccbf37362.jpg)
 
-aws RDS서비스를 이용하여 bookdelivery 데이터베이스를 생성하였다.
 
-![image](https://user-images.githubusercontent.com/78421066/125374606-52f6d200-e3c2-11eb-9f95-f86a936c2d33.png)
+payment 서비스를 트리거 하여 MySQL DB에 정상적으로 insert 확인
 
-로컬PC DBeaver를 이용하여 데이터베이스 및 테이블 생성을 확인하였다.
+http PUT http://localhost:8082/ordermgmts/1 orderId=2 itemId=2 orderStatus="finished"
 
-![image](https://user-images.githubusercontent.com/78421066/125375108-6191b900-e3c3-11eb-9951-7d4d9f1c5d10.png)
+![32](https://user-images.githubusercontent.com/60598148/126889334-15230fcc-0c2b-4aad-be89-f406d6d14728.jpg)
+
+
 
 ## API 게이트웨이
 
