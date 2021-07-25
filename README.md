@@ -203,7 +203,8 @@ Lv.2 Intensive Coursework - Kimg Sung-Hwan
 
 ## 헥사고날 아키텍처 다이어그램 도출(추가 모델)
     
-![9](https://user-images.githubusercontent.com/60598148/126856400-30f9b7f6-5b0c-4415-9fc1-0dfed77bd859.jpg)
+![9](https://user-images.githubusercontent.com/60598148/126884754-c82e469b-29e5-45da-8551-5191fa4ead3c.jpg)
+
 
 
     - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
