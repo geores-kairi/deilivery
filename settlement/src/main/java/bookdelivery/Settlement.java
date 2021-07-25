@@ -20,13 +20,8 @@ public class Settlement {
     private String orderStatus;
 
     @PostPersist    
-    public void onPostPersist(){
-        
-        /*
-        OrderFinished orderFinished = new OrderFinished();
-        BeanUtils.copyProperties(this, orderFinished);
-        orderFinished.publishAfterCommit();
-        */
+    public void onPostPersist(){        
+       
         Settled settled = new Settled();
         BeanUtils.copyProperties(this, settled);
         settled.publishAfterCommit();
@@ -36,6 +31,8 @@ public class Settlement {
     @PostUpdate
     public void onPostUpdate(){
 
+        if (this.orderStatus.equals("deliveryfinished")){
+
         Settled settled = new Settled();
         BeanUtils.copyProperties(this, settled);
         settled.publishAfterCommit();
@@ -43,20 +40,16 @@ public class Settlement {
         bookdelivery.external.Payment payment = new bookdelivery.external.Payment();
         //mappings goes here
         payment.setSettlementid(settled.getSettlementid());
-        payment.setOrderid(settled.getOrderId());
-        //payment.setCustomerName(settled.getCustomerName());
-        //payment.setItemName(settled.getItemName());
+        payment.setOrderid(settled.getOrderId());       
         payment.setQty(settled.getQty());
         payment.setItemid(settled.getItemid());
-        payment.setItemPrice(settled.getItemPrice());
-        //payment.setDeliveryAddress(orderPlaced.getDeliveryAddress());
-        //payment.setDeliveryPhoneNumber(orderPlaced.getDeliveryPhoneNumber());
-        // payment.setOrderStatus(orderPlaced.getOrderStatus());
+        payment.setItemPrice(settled.getItemPrice());       
         payment.setOrderStatus("paid");
         SettlementApplication.applicationContext.getBean(bookdelivery.external.PaymentService.class)
             .pay(payment);
             System.out.println("페이먼트 생성" + payment.getOrderStatus());
-
+        }
+       
     }
 
     public Long getSettlementid() {

@@ -46,23 +46,22 @@ public class PolicyHandler{
         // settlementRepository.save(settlement);
 
         settlementRepository.findByOrderId(orderfinished.getOrderId()).ifPresent(settlement->{
-
-            System.out.println("\n\n##### getorderid: "+ orderfinished.getOrderId());
+           
             settlement.setOrderStatus("deliveryfinished");//add
             settlementRepository.save(settlement);
         });         
     }
+
     
     @StreamListener(KafkaProcessor.INPUT)
     public void wheneverPaid_PayRecivement(@Payload Paid paid){
-
+        if (paid.getOrderStatus().equals("paid")){
+                    
         System.out.println("지불 체크");
 
-        if(paid.validate()) return;
+        if(!paid.validate()) return;
 
-        System.out.println("\n\n##### listener 지불 : " + paid.toJson() + "\n\n");
-
-
+        System.out.println("\n\n##### listener 지불 : " + paid.toJson() + "\n\n");      
 
         // Sample Logic //
         // Settlement settlement = new Settlement();
@@ -73,7 +72,8 @@ public class PolicyHandler{
             System.out.println("\n\n##### getorderid: "+ paid.getOrderId());
             settlement.setOrderStatus("paid");//add
             settlementRepository.save(settlement);
-        });         
+        });    
+    }     
     }
 
 
