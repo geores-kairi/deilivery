@@ -5,6 +5,19 @@ server:
 
 spring:
   profiles: default
+
+  #mysql 설정  
+  #datasource:
+  #  driver-class-name: com.mysql.cj.jdbc.Driver
+  #  url: jdbc:mysql://localhost:3306/world?useUnicode=true&characterEncoding=utf8
+  #  username: root
+  #  password: rlflek%0821
+  #jpa:
+  #  database: mysql
+  #  database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+  #  generate-ddl: true
+  #  show-sql: true  
+
   jpa:
     properties:
       hibernate:

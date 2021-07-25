@@ -21,9 +21,13 @@ spring:
           predicates:
             - Path=/deliveries/** 
         - id: payment
-          uri: http://localhost:8084
+          uri: http://localhost:8086
           predicates:
             - Path=/payments/** 
+        - id: settlement
+          uri: http://localhost:8085
+          predicates:
+            - Path=/settlements/** , /mySettlements/**
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -59,6 +63,10 @@ spring:
           uri: http://payment:8080
           predicates:
             - Path=/payments/** 
+        - id: settlement
+          uri: http://localhost:8080
+          predicates:
+            - Path=/settlements/** , /mySettlements/**
       globalcors:
         corsConfigurations:
           '[/**]':
