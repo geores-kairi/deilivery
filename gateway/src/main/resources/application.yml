@@ -27,7 +27,7 @@ spring:
         - id: settlement
           uri: http://localhost:8085
           predicates:
-            - Path=/settlements/** , /mySettlements/**
+            - Path=/settlements/**, /mySettlements/**
       globalcors:
         corsConfigurations:
           '[/**]':
