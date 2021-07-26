@@ -84,6 +84,9 @@ phases:
                     image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/user08:$CODEBUILD_RESOLVED_SOURCE_VERSION
                     ports:
                       - containerPort: 8080
+                    resources:
+                      requests:
+                        cpu: "200m"
                     readinessProbe:
                       httpGet:
                         path: /settlement
