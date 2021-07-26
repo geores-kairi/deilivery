@@ -24,7 +24,7 @@ phases:
       - echo start command
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - echo $PWD
-      - cd settlement
+      - cd ordermanagement
       - echo $PWD      
   build:
     commands:
