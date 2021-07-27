@@ -128,11 +128,13 @@ Lv.2 Intensive Coursework - Kimg Sung-Hwan
 
 ### 이벤트 도출
 
-![1](https://user-images.githubusercontent.com/60598148/126855260-fae899b9-296a-431a-9a3a-74ef8e779ab3.jpg)
+![27](https://user-images.githubusercontent.com/60598148/127077650-f294b1d2-51a1-4a9a-87ba-4550629c558f.jpg)
 
 
 ### 부적격 이벤트 탈락
-![2](https://user-images.githubusercontent.com/60598148/126855262-6200c89f-31ff-448b-9494-48d04a5971f0.jpg)
+
+![28](https://user-images.githubusercontent.com/60598148/127077658-4ef1cc22-f6e9-40d2-9ffd-5768d28e98e1.jpg)
+
 
     - 과정중 도출된 잘못된 도메인 이벤트들을 걸러내는 작업을 수행함
         - '주문내역이 상점에 전달됨' 및 '주문상태 업데이트됨'은 이벤트에 의한 반응에 가까우므로 이벤트에서 제외
