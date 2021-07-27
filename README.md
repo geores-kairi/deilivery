@@ -562,7 +562,7 @@ ordermgmt 서비스의 배달완료로 입력을 받으면 ordermgmt의 orderSta
 ![24](https://user-images.githubusercontent.com/60598148/126884874-627ba888-3706-4c04-b1ce-f799111a68b3.jpg)
 
 
-주문에 대한 접수(orderTaken) 시 orderId를 키값으로 MyPage 데이터도 생성되며 
+주문에 대한 접수(orderTaken) 시 settlementId를 키값으로 MySettlement 데이터도 생성되며 
 
 "배송완료, 정산지급"의 이벤트에 따라 정산상태가 업데이트되도록 모델링하였다
 
