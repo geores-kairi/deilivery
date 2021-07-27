@@ -833,53 +833,51 @@ Gateway 포트인 8088을 통해서 주문접수를 생성시켜 8082 포트에�
 각 MSA 구현물은 git의 source repository 에 구성되었고, AWS의 CodeBuild를 활용하여 무정지  CI/CD를 설정하였다.
 
 CodeBuild 설정
-- 빌드 프로젝드 생성(각 MSA별 별도 설정)
+- 빌드 프로젝드 생성
 
-![1](https://user-images.githubusercontent.com/60598148/125281723-88afa280-e351-11eb-8956-dea1b984e804.jpg)
-
-- 기본 repository 
-
-![2](https://user-images.githubusercontent.com/60598148/125281985-d6c4a600-e351-11eb-9a6c-1009c33aa28a.jpg)
+![22](https://user-images.githubusercontent.com/60598148/127074302-7d08a75b-4616-4310-b2dc-a73d7ec420fb.jpg)
 
 - 빌드 환경 설정
 
 환경변수(KUBE_URL, KUBE_TOKEN, repository 등 설정)
 
-![3](https://user-images.githubusercontent.com/60598148/125282230-18ede780-e352-11eb-9b96-43a3eb6b0a05.jpg)
+![23](https://user-images.githubusercontent.com/60598148/127074343-67a0c817-fb72-4c2a-9a62-23521b67253a.jpg)
 
-- 빌드 스펙
-
-![4](https://user-images.githubusercontent.com/60598148/125282499-6c603580-e352-11eb-8948-d539048971b6.jpg)
 
 buildspec.yml 파일 내용
-![5](https://user-images.githubusercontent.com/60598148/125282795-bba66600-e352-11eb-9c70-b790bb6b567c.jpg)
 
-- 빌드 결과
+![24](https://user-images.githubusercontent.com/60598148/127074365-1ca6fc7d-5a8a-4f41-88fb-2a845c29a595.jpg)
 
-![6](https://user-images.githubusercontent.com/60598148/125283156-19d34900-e353-11eb-94d2-e7b197cf0dfd.jpg)
-![7](https://user-images.githubusercontent.com/60598148/125283401-5c952100-e353-11eb-9c64-943ee4766263.jpg)
+- 빌드 결과( 소스 빌드 및 deploy와 service 오픈까지 적용)
 
-![8](https://user-images.githubusercontent.com/60598148/125283634-8fd7b000-e353-11eb-8200-768c23ad2f77.jpg)
+![25](https://user-images.githubusercontent.com/60598148/127074398-9d0f0325-1896-4e59-8015-3134f43826aa.jpg)
+
 
 
 ## 동기식 호출 / Circuit Breaker / 장애격리
 서킷 브레이킹 프레임워크의 선택: Spring FeignClient + Hystrix 옵션을 사용하여 구현함  
-오더 요청이 과도할 경우 서킷 브레이크를 통해 장애 격리를 하려고 한다. 
+정산 요청이 과도할 경우 서킷 브레이크를 통해 장애 격리를 하려고 한다. 
 
 Hystrix 를 설정: 요청처리 쓰레드에서 처리시간이 610 ms가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정  
-![image](https://user-images.githubusercontent.com/85722738/125285997-3c1a9600-e356-11eb-9c05-119e694a38c5.png)
+
+![2](https://user-images.githubusercontent.com/60598148/127074527-78c86682-a25d-4c4e-9a7d-0af3b089d567.jpg)
 
 
 결제 서비스의 부하 처리 - 400 ms에서 증감 220 ms 정도 수준으로 설정  
-![image](https://user-images.githubusercontent.com/85722738/125285881-1ab9aa00-e356-11eb-9ed3-740c6e2bcafe.png)
+
+![4](https://user-images.githubusercontent.com/60598148/127074554-7bc87a24-8543-479b-9dc1-b71a2aab9360.jpg)
 
 
 부하테스터 siege 툴을 통한 서킷 브레이커 동작 확인: 동시사용자 100명 60초 동안 실시  
-![image](https://user-images.githubusercontent.com/85722738/125383279-25198980-e3d2-11eb-948a-881c61c88a01.png)
+
+![6](https://user-images.githubusercontent.com/60598148/127074579-ac7633fd-8375-46fd-93d2-322cdb455df3.jpg)
+
 
 요청 상태에 따라 회로 열기/닫기가 반복되는 모습 확인
-![image](https://user-images.githubusercontent.com/85722738/125383229-13d07d00-e3d2-11eb-81f9-425bdec581d5.png)
-![image](https://user-images.githubusercontent.com/85722738/125383434-5b570900-e3d2-11eb-971e-f7ae5da0c6ba.png)
+
+![3](https://user-images.githubusercontent.com/60598148/127074597-14f50d41-740e-4872-aad6-45bc986f192a.jpg)
+![5](https://user-images.githubusercontent.com/60598148/127074610-738f7f98-e4eb-45ad-a0e6-320fbd9e3d6a.jpg)
+
 
 
 ## Autoscale (HPA)
