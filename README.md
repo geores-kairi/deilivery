@@ -946,9 +946,10 @@ deployment yaml 파일
 
 POD  생성 후 kubectl exec -it 명령어를 통해 pod 내부 환경 조회
 
-![21](https://user-images.githubusercontent.com/60598148/127075289-94dd5926-f483-4169-81b4-9dbc2efc61fa.jpg)
+![20](https://user-images.githubusercontent.com/60598148/127079649-49c79807-6d77-4276-ae54-773b594ba459.jpg)
 
 configmap value 정상 반영 확인됨
+
 
 
 ## Self-healing (Liveness Probe)
