@@ -971,6 +971,9 @@ kubectl describe 명령어로 주문관리 Pod 상태 확인 시 livenessProbe �
 
 주문관리 Pod 내부로 진입하여 touch 명령어를 통해 /tmp/healthy 파일 생성 시 Restart가 3번째에서 중단되고 Pod가 정상 동작함을 확인하였다 (2회 Fail 후 파일 생성되어 3번째에 성공)
 
+![16](https://user-images.githubusercontent.com/60598148/127079553-8e2ffbbe-b52f-4da2-877c-7be0d20a8674.jpg)
+
+
 ![17](https://user-images.githubusercontent.com/60598148/127075469-97434e43-29b1-4919-a3c8-0c599d6f4eba.jpg)
 
 
