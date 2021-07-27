@@ -178,7 +178,8 @@ Lv.2 Intensive Coursework - Kimg Sung-Hwan
 
 ### 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
 
-![7](https://user-images.githubusercontent.com/60598148/126856031-ebd6aab4-b162-45f9-a5c5-ed24a9c8164b.jpg)
+![29](https://user-images.githubusercontent.com/60598148/127077906-ed742e72-880c-4e65-bc17-4c4fd952af10.jpg)
+
 
 
     - 상점주인이 주문을 접수한다 (ok)
