@@ -203,9 +203,7 @@ Lv.2 Intensive Coursework - Kimg Sung-Hwan
 
 ## 헥사고날 아키텍처 다이어그램 도출(추가 모델)
     
-![9](https://user-images.githubusercontent.com/60598148/126884754-c82e469b-29e5-45da-8551-5191fa4ead3c.jpg)
-
-
+![26](https://user-images.githubusercontent.com/60598148/127075990-1382c122-e590-4bda-aef3-e224b3dce789.jpg)
 
     - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
     - 호출관계에서 Pub/Sub 과 Req/Resp 를 구분함
