@@ -882,159 +882,94 @@ Hystrix 를 설정: 요청처리 쓰레드에서 처리시간이 610 ms가 넘�
 
 ## Autoscale (HPA)
 주문 서비스에 HPA를 설정한다. 평균대비 CPU 20퍼 초과시 3개까지 pod 추가  
-![image](https://user-images.githubusercontent.com/85722738/125292390-60c63c00-e35d-11eb-8e39-f5597eeec376.png)
+
+![7](https://user-images.githubusercontent.com/60598148/127074697-5f60d561-afb4-476e-be9b-b25744e2d68c.jpg)
 
 현재 주문서비스 pod 상태 확인  
-![image](https://user-images.githubusercontent.com/85722738/125292058-06c57680-e35d-11eb-96c6-42da212b0306.png)
+
+![8](https://user-images.githubusercontent.com/60598148/127074721-527ffddd-1ebf-4d01-acda-0bb76f9eda1d.jpg)
+
 
 siege 로 부하테스트를 진행  
-![image](https://user-images.githubusercontent.com/85722738/125292601-94a16180-e35d-11eb-980e-7427c462f7ca.png)
+
+siege -c255 t60S -v http://settlement:8080/settlements
+
 
 아래와 같이 scale out 되는것을 확인할 수 있다.  
-![image](https://user-images.githubusercontent.com/85722738/125293099-0da0b900-e35e-11eb-91bc-72ab25ba08fe.png)
+
+![9](https://user-images.githubusercontent.com/60598148/127074866-51368740-02ac-463d-b4db-c126c069ce12.jpg)
+
 
 
 ## Zero-downtime deploy (Readiness Probe)
+
 (무정지 배포)
 서비스의 무정지 배포를 위하여 주문관리(Ordermanagement) 서비스의 배포 yaml 파일에 readinessProbe 옵션을 추가하였다.
-```
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ordermanagement
-  labels:
-    app: ordermanagement
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: ordermanagement
-  template:
-    metadata:
-      labels:
-        app: ordermanagement
-    spec:
-      containers:
-      - name: ordermanagement
-        image: 879772956301.dkr.ecr.ap-northeast-1.amazonaws.com/user03-ordermgmt:latest
-        ports:
-        - containerPort: 8080
-        readinessProbe:
-          httpGet:
-            path: '/ordermgmts'
-            port: 8080
-          initialDelaySeconds: 10
-          timeoutSeconds: 2
-          periodSeconds: 5
-          failureThreshold: 3    
-```
 
-```
-]root@labs--679458944:/home/project# kubectl apply -f deployment.yaml
-deployment.apps/ordermanagement created
+![11](https://user-images.githubusercontent.com/60598148/127074923-39c329f7-3e1b-4bec-9afa-12866c884c13.jpg)
 
-]root@labs--679458944:/home/project# kubectl expose deployment/ordermanagement
-service/ordermanagement exposed
-```
+
 ![readiness](https://user-images.githubusercontent.com/85722733/125400678-273d1180-e3ed-11eb-854d-a7617b8aaa2b.png)
 
-siege 를 통해 100명의 가상의 유저가 30초동안 주문관리 서비스를 지속적으로 호출하게 함과 동시에
+siege 를 통해 100명의 가상의 유저가 60초동안 주문관리 서비스를 지속적으로 호출하게 함과 동시에
 ```
-siege -c100 -t30S -v --content-type "application/json" 'http://ab7cbdfab34934e4daefe25f88a22d77-556791783.ap-northeast-1.elb.amazonaws.com:8080/ordermgmts POST {"orderId": "1", "itemName": "ITbook", "qty": "3", "customerName": "HeidiCho", "deliveryAddress": "kyungkido sungnamsi", "deliveryPhoneNumber": "01012341234", "orderStatus": "orderTaken"}'
+siege -c100 -t60S -r10 -v --content-type "application/json" 'http://10.100.116.211:8080/ordermgmts POST {"orderId ":1, "orderStatus":"finished"}'
 ```
 kubectl set image 명령어를 통해 배포를 수행하였다.
-![readiness2](https://user-images.githubusercontent.com/85722733/125286095-5a809180-e356-11eb-9bfb-a13f663478cf.png)
+
+![10](https://user-images.githubusercontent.com/60598148/127074985-e4aaf9d4-ac65-497c-be70-1aae62e2ed1c.jpg)
+
 
 siege 테스트 결과 연결시도 대비 성공률이 100% 로서 readinessProbe 옵션을 통해 무정지 배포를 확인하였다.
-![readiness3](https://user-images.githubusercontent.com/85722733/125286133-666c5380-e356-11eb-9d99-521f156426ce.png)
+
+![12](https://user-images.githubusercontent.com/60598148/127075060-7c47427b-0354-4664-afe9-87ca8b8db71e.jpg)
+
 
 ## ConfigMap
-운영환경에서 컨피그맵을 통해 pod 생성 시 정해진 kafka url 과 log 파일 설정(운영과 개발 분리)
+운영환경에서 컨피그맵을 통해 pod 생성 시 정해진 버젼과 리마크 파일 설정(운영 버젼관리)
 
 bookdelivery-config.yml
 
-![14](https://user-images.githubusercontent.com/60598148/125390104-3e740300-e3dd-11eb-9218-89f36a3416d2.jpg)
+![18](https://user-images.githubusercontent.com/60598148/127075198-fd29ae72-2c05-41d9-9753-662b1785c530.jpg)
+
 
 컨피그맵 생성 및 확인
 
-![15](https://user-images.githubusercontent.com/60598148/125390157-55b2f080-e3dd-11eb-8f69-1d426c0ed830.jpg)
+![19](https://user-images.githubusercontent.com/60598148/127075213-eae85daa-3a38-4528-b056-d276cb0fbcb2.jpg)
+
 
 deployment yaml 파일
 
-       - name: consumer
-          image: 052937454741.dkr.ecr.ap-northeast-2.amazonaws.com/lecture-consumer:latest 
-          env:
-          - name: KAFKA_URL
-            valueFrom:
-              configMapKeyRef:
-                name: kafka-config
-                key: KAFKA_URL
-          - name: LOG_FILE
-            valueFrom:
-              configMapKeyRef:
-                name: kafka-config
-                key: LOG_FILE
+![21](https://user-images.githubusercontent.com/60598148/127075247-224838f0-768f-4c9a-af0f-a9d17b281e0c.jpg)
 
-POD  생성 후 아래 명령어를 통해 pod 내부 환경 조회
-kubectl exec -it bookdelivery-nstest-deployment-6f976bf7df-kl5mz -- /bin/sh
 
-![16](https://user-images.githubusercontent.com/60598148/125390906-8d6e6800-e3de-11eb-81fa-7c04f21415c5.jpg)
+POD  생성 후 kubectl exec -it 명령어를 통해 pod 내부 환경 조회
+
+![21](https://user-images.githubusercontent.com/60598148/127075289-94dd5926-f483-4169-81b4-9dbc2efc61fa.jpg)
 
 configmap value 정상 반영 확인됨
-
-프로그램(python) 파일 반영을 통해 kafka 로그 확인
-
-from kafka import KafkaConsumer
-from logging.config import dictConfig
-import logging
-import os
-
-kafka_url = os.getenv('KAFKA_URL')
-log_file = os.getenv('LOG_FILE')
-
-consumer = KafkaConsumer('lecture', bootstrap_servers=[
-                         kafka_url], auto_offset_reset='earliest', enable_auto_commit=True, group_id='alert')
-
 
 
 ## Self-healing (Liveness Probe)
 
 주문관리(Ordermanagement) 서비스의 배포 yaml 파일에 Pod 내 /tmp/healthy 파일을 5초마다 체크하도록 livenessProbe 옵션을 추가하였다
 
-```
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ordermanagement
-  labels:
-    app: ordermanagement
-spec:
-  containers:
-  - name: ordermanagement
-    image: 879772956301.dkr.ecr.ap-northeast-1.amazonaws.com/user03-ordermgmt:latest
-    livenessProbe:
-      exec:
-        command:
-        - cat 
-        - /tmp/healthy
-      initialDelaySeconds: 15
-      periodSeconds: 5
-```
+![14](https://user-images.githubusercontent.com/60598148/127075316-4411cd90-76e1-43e5-9030-f999ac0bdf8a.jpg)
+
 yaml 파일을 실행하여 주문관리 pod 가 생성되었다
-```
-]root@labs--679458944:/home/project# kubectl create -f test_liveness.yaml
-pod/ordermanagement created
-```
-![live0](https://user-images.githubusercontent.com/85722733/125304329-77be5b80-e368-11eb-8eeb-a2083a26552b.png)
+
+![15](https://user-images.githubusercontent.com/60598148/127075373-34754fdf-b435-4a8f-9cf5-e320fb168243.jpg)
+
 
 Pod 구동 시 Running 상태이나 Pod 내 체크 대상인 /tmp/healthy 파일이 없기 때문에 livenessProbe 옵션의 "Self-healing" 특징 대로 계속 Retry하여 Restart 된 것이 확인된다
 
 kubectl describe 명령어로 주문관리 Pod 상태 확인 시 livenessProbe 관련 실패 로그
 
-![live2](https://user-images.githubusercontent.com/85722733/125304502-9d4b6500-e368-11eb-80e3-4bce6f898fc7.png)
+![13](https://user-images.githubusercontent.com/60598148/127075416-105fba43-b82b-4e9b-9189-b9f157f79f92.jpg)
+
 
 주문관리 Pod 내부로 진입하여 touch 명령어를 통해 /tmp/healthy 파일 생성 시 Restart가 3번째에서 중단되고 Pod가 정상 동작함을 확인하였다 (2회 Fail 후 파일 생성되어 3번째에 성공)
 
-![live1](https://user-images.githubusercontent.com/85722733/125304569-ac321780-e368-11eb-8fc4-92ab83995d2a.png)
+![17](https://user-images.githubusercontent.com/60598148/127075469-97434e43-29b1-4919-a3c8-0c599d6f4eba.jpg)
 
-![live3](https://user-images.githubusercontent.com/85722733/125304613-b3f1bc00-e368-11eb-9a8c-01a897ab7ccf.png)
+
